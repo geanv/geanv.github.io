@@ -22,6 +22,21 @@
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
+/* Custom page width */
+.max-w-page {
+  max-width: 1200px;
+}
+
+/* Dark mode portrait SVG background */
+html.dark .portrait-bg {
+  fill: #1c1c1f;
+}
+
+/* Scroll offset for heading anchors (sticky header) */
+.prose h2[id], .prose h3[id], .prose h4[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* Base styles */
 html {
   scroll-behavior: smooth;

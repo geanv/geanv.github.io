@@ -1,0 +1,82 @@
+---
+interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { headings } = Astro.props;
+const tocItems = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+
+if (tocItems.length === 0) return;
+---
+
+<nav class="toc-sidebar sticky top-24" aria-label="Table of contents">
+  <h4 class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-zinc-500 mb-3">
+    On this page
+  </h4>
+  <ul class="space-y-1.5 border-l border-gray-200 dark:border-zinc-800">
+    {tocItems.map(heading => (
+      <li class:list={['pl-3', heading.depth === 3 && 'pl-6']}>
+        <a
+          href={`#${heading.slug}`}
+          class="block text-sm leading-snug py-0.5 text-gray-500 dark:text-zinc-400 hover:text-primary dark:hover:text-primary-dark transition-colors toc-link"
+          data-heading-slug={heading.slug}
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  function initTOC() {
+    const links = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
+    if (!links.length) return;
+
+    const headings = Array.from(links)
+      .map(link => document.getElementById(link.dataset.headingSlug || ''))
+      .filter(Boolean) as HTMLElement[];
+
+    if (!headings.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          const slug = entry.target.id;
+          const link = document.querySelector(`.toc-link[data-heading-slug="${slug}"]`);
+          if (link) {
+            if (entry.isIntersecting) {
+              // Remove active from all, add to current
+              document.querySelectorAll('.toc-link').forEach(l => {
+                l.classList.remove('toc-active');
+              });
+              link.classList.add('toc-active');
+            }
+          }
+        });
+      },
+      {
+        rootMargin: '-80px 0px -70% 0px',
+        threshold: 0,
+      }
+    );
+
+    headings.forEach(h => observer.observe(h));
+
+    // Cleanup on navigation
+    document.addEventListener('astro:before-swap', () => observer.disconnect(), { once: true });
+  }
+
+  initTOC();
+  document.addEventListener('astro:after-swap', initTOC);
+</script>
+
+<style>
+  .toc-active {
+    color: var(--color-primary) !important;
+    font-weight: 500;
+  }
+  html.dark .toc-active {
+    color: var(--color-primary-dark) !important;
+  }
+</style>
